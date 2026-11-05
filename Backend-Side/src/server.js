@@ -2,6 +2,7 @@ import express from 'express';
 import pool from './config/db.js';
 import productRouter from './routes/product.routes.js';
 import stockRouter from './routes/stock.routes.js';
+import cors from 'cors';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -11,8 +12,10 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 }
 
 app.use(express.json({ limit: '1mb' }));
-app.use('/api/inventory', productRouter);
-app.use('/api/stock', stockRouter); 
+app.use('/api/products', productRouter);
+app.use('/api', stockRouter);
+app.use(cors({ origin: process.env.FRONTEND_URL }));
+
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });

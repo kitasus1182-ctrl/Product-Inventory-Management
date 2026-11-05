@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-//POST /api/products/addproducts
+//POST /api/products
 export const createProduct = async (req, res, next) => {
   const body = req.body;
 
@@ -75,7 +75,7 @@ export const deleteProduct = async (req, res, next) => {
   }
 };
 
-//GET /api/products/category
+//GET /api/products/categories
 
 export const getCategories = async (req, res, next) => {
   try {
@@ -85,7 +85,7 @@ export const getCategories = async (req, res, next) => {
 
     return res.status(200).json({
       message: "Products retrieved successfully",
-      products: result.rows.map((row) => row.category),
+      categories: result.rows.map((row) => row.category),
     });
   } catch (err) {
     return next(err);
@@ -102,13 +102,18 @@ export const getProducts = async (req, res, next) => {
               COALESCE(SUM(m.quantity), 0)::int AS stock
        FROM products p
        LEFT JOIN stock_movements m ON m.product_id = p.id
-       WHERE ($1 = '' OR p.name ILIKE '%' || $1 || '%' OR p.sku ILIKE '%' || $1 || '%')
-         AND ($2 = '' OR p.category = $2)
+       WHERE ($1 = '' OR p.name ILIKE '%' || $1 || '%'
+                OR p.sku ILIKE '%' || $1 || '%'
+                OR p.category ILIKE '%' || $1 || '%')
+      AND ($2 = '' OR p.category = $2)
        GROUP BY p.id
        ORDER BY p.name`,
       [search, category],
     );
-    res.json(rows);
+    res.json({
+      message: "Products retrieved successfully",
+      products: rows,
+    });
   } catch (err) {
     next(err);
   }

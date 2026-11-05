@@ -4,7 +4,7 @@ import { validateStock } from '../middleware/validate.js';
 
 const stockRouter = Router();
 
-stockRouter.post('/checkstock/:id', validateStock, changeStock);
+stockRouter.post('/products/:id/stock', validateStock, changeStock);
 stockRouter.get('/movements', getMovements);
 
 export default stockRouter;

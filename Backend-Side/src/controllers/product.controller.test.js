@@ -2,7 +2,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import pool from '../config/db.js';
-import { createProduct } from './product.controller.js';
+import { createProduct, getCategories, getProducts } from './product.controller.js';
+import { validateProduct } from '../middleware/validate.js';
 
 const validProduct = {
     name: 'Widget',
@@ -25,12 +26,12 @@ const createResponse = () => ({
     },
 });
 
-test('rejects invalid product input without querying the database', async (t) => {
+test('validation middleware rejects invalid product input without querying the database', async (t) => {
     const query = t.mock.method(pool, 'query');
     const response = createResponse();
     const next = t.mock.fn();
 
-    await createProduct({ body: { ...validProduct, price: -1 } }, response, next);
+    validateProduct({ body: { ...validProduct, price: -1 } }, response, next);
 
     assert.equal(response.statusCode, 400);
     assert.equal(query.mock.callCount(), 0);
@@ -69,4 +70,23 @@ test('returns conflict when a product violates a unique constraint', async (t) =
 
     assert.equal(response.statusCode, 409);
     assert.equal(next.mock.callCount(), 0);
+});
+
+test('returns products in the response shape expected by the frontend', async (t) => {
+    const products = [{ id: 1, ...validProduct, stock: 5 }];
+    t.mock.method(pool, 'query', async () => ({ rows: products }));
+    const response = createResponse();
+
+    await getProducts({ query: { search: '', category: '' } }, response, t.mock.fn());
+
+    assert.deepEqual(response.body.products, products);
+});
+
+test('returns categories in the response shape expected by the frontend', async (t) => {
+    t.mock.method(pool, 'query', async () => ({ rows: [{ category: 'Tools' }] }));
+    const response = createResponse();
+
+    await getCategories({}, response, t.mock.fn());
+
+    assert.deepEqual(response.body.categories, ['Tools']);
 });
