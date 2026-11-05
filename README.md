@@ -44,7 +44,7 @@ Product-Inventory-Management/
 │   │   ├── middleware/
 │   │   │   └── validate.js            # product + stock validation
 │   │   └── app.js                     # express setup, route mounting, error handler
-│   ├── schema.sql                     # tables + sample data
+│   ├                     
 │   ├── .env
 │   ├── .gitignore
 │   └── package.json
